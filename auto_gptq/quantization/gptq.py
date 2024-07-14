@@ -37,6 +37,10 @@ class GPTQ:
             self.out1 = out
         if len(inp.shape) == 2:
             inp = inp.unsqueeze(0)
+        inp = inp.t(1)
+        H = (self.H).to(1)
+        torch.cuda.empty_cache()
+
         tmp = inp.shape[0]
         if isinstance(self.layer, nn.Linear) or isinstance(self.layer, transformers.Conv1D):
             if len(inp.shape) == 3:
@@ -52,12 +56,15 @@ class GPTQ:
             inp = unfold(inp)
             inp = inp.permute([1, 0, 2])
             inp = inp.flatten(1)
-        self.H *= self.nsamples / (self.nsamples + tmp)
+        H *= self.nsamples / (self.nsamples + tmp)
         self.nsamples += tmp
         # inp = inp.float()
         inp = math.sqrt(2 / self.nsamples) * inp.float()
         # self.H += 2 / self.nsamples * inp.matmul(inp.t())
-        self.H += inp.matmul(inp.t())
+        inp = inp.matmul(inp.t())
+        H += inp
+        torch.cuda.empty_cache()
+        self.H = H.to(device=self.dev)
 
     def fasterquant(
         self,

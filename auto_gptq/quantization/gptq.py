@@ -37,7 +37,7 @@ class GPTQ:
             self.out1 = out
         if len(inp.shape) == 2:
             inp = inp.unsqueeze(0)
-        inp = inp.t(1)
+        inp = inp.to(1)
         H = (self.H).to(1)
         torch.cuda.empty_cache()
 

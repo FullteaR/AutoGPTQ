@@ -113,9 +113,12 @@ class GPTQ:
         damp = percdamp * torch.mean(torch.diag(H))
         diag = torch.arange(self.columns, device=self.dev)
         H[diag, diag] += damp
+        H = H.cpu()
         H = torch.linalg.cholesky(H)
         H = torch.cholesky_inverse(H)
         H = torch.linalg.cholesky(H, upper=True)
+        torch.cuda.empty_cache()
+        H = H.to(device=self.dev)
         Hinv = H
 
         for i1 in range(0, self.columns, blocksize):

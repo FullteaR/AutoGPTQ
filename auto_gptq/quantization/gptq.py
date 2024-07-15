@@ -80,7 +80,7 @@ class GPTQ:
             W = W.flatten(1)
         if isinstance(self.layer, transformers.Conv1D):
             W = W.t()
-        W = W.float()
+        W = W.float().to(device=self.dev)
 
         tick = time.time()
 
@@ -126,8 +126,7 @@ class GPTQ:
         H = torch.cholesky_inverse(H)
         H = torch.linalg.cholesky(H, upper=True)
         torch.cuda.empty_cache()
-        H = H.to(device=self.dev)
-        Hinv = H
+        Hinv = H.to(device=self.dev)
 
         for i1 in range(0, self.columns, blocksize):
             i2 = min(i1 + blocksize, self.columns)
